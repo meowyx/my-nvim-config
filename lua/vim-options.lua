@@ -8,6 +8,8 @@ vim.opt.wrap = false
 vim.opt.termguicolors = true
 vim.opt.scrolloff = 8
 vim.opt.mouse = "a"
+vim.opt.cursorline = true
+vim.opt.fillchars = { eob = " " }
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"

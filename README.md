@@ -35,10 +35,18 @@ If you're brand new to Neovim, read this top-to-bottom. If you already know Vim,
 - VS Code-style buffer tabs at the top (`bufferline`)
 - Color highlighting for hex/rgb/Tailwind (`nvim-colorizer`)
 - Inline labels at the end of long blocks (`nvim-biscuits`)
-- Status bar (`lualine`)
+- Custom status bar (`lualine`, Catppuccin Mocha theme) — pink rounded mode pill, hexagon section icons, branch + git diff stats, LSP indicator, diagnostic dots
 - Leader-key cheat popup (`which-key`)
 - Transparent background (`transparent.nvim`)
-- Catppuccin theme
+- Catppuccin Mocha theme
+- Animated cursor trail (`smear-cursor.nvim`)
+- Floating command-line + pretty notifications (`noice.nvim`)
+- Smooth scroll and window-resize animations (`mini.animate`)
+- Indent guides with an animated current-scope highlight (`indent-blankline` + `mini.indentscope`)
+- Rainbow-colored matching brackets (`rainbow-delimiters`)
+- Color-coded `TODO` / `FIXME` / `HACK` badges (`todo-comments`)
+- Distraction-free writing mode (`zen-mode`)
+- Editor polish: relative line numbers, cursor-line highlight, hidden end-of-buffer tildes, brighter Catppuccin-tinted indent guides
 
 ---
 
@@ -50,11 +58,35 @@ You need:
 - **Neovim 0.11 or newer** — `brew install neovim`
 - **Rust toolchain** (for rustfmt + clippy via rust-analyzer) — `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 - **Node** (for prettier) — `brew install node`
-- **A Nerd Font** (for icons) — e.g. `brew install --cask font-jetbrains-mono-nerd-font`, then set your terminal to use it
+- **A Nerd Font** in your terminal — see [Terminal + Nerd Font](#terminal--nerd-font) below
 
 Optional:
 - `stylua` and `taplo` will be auto-installed by `mason`
 - `prettier` — install globally with `npm install -g prettier`
+
+### Terminal + Nerd Font
+
+The icons everywhere (file tree, status bar, bufferline tabs, telescope) require a **Nerd Font** in your terminal. Without it, all icons render as `?` boxes.
+
+This config was set up with **JetBrainsMono Nerd Font**, but any Nerd Font works. To install it on macOS:
+
+```bash
+brew install --cask font-jetbrains-mono-nerd-font
+```
+
+Then point your terminal at the new font (font lists are cached on launch — fully quit and reopen your terminal first):
+
+| Terminal | How to set the font |
+|---|---|
+| **Warp** | `⌘ ,` → **Appearance** → **Text** → **Font** → search `JetBrains` → pick **`JetBrainsMono Nerd Font Mono`** |
+| **Kitty** | Add to `~/.config/kitty/kitty.conf`: `font_family JetBrainsMono Nerd Font` |
+| **iTerm2** | Preferences → Profiles → **Text** → **Font** → pick **`JetBrainsMono Nerd Font`** |
+| **Ghostty** | Add to `~/.config/ghostty/config`: `font-family = "JetBrainsMono Nerd Font"` |
+| **Alacritty** | In `~/.config/alacritty/alacritty.toml`: `[font.normal] family = "JetBrainsMono Nerd Font"` |
+
+After switching the font, restart Neovim so it re-renders with the correct glyphs.
+
+Note on Warp specifically: the cursor-trail animation from `smear-cursor.nvim` and the smooth scrolling from `mini.animate` will look choppier in Warp than in Kitty/Ghostty/WezTerm because Warp isn't a pure GPU-rendered TUI. If the animations matter, run Neovim in Kitty or Ghostty.
 
 ### Setup
 
@@ -69,7 +101,7 @@ git clone https://github.com/<your-username>/my-nvim-config ~/.config/nvim
 nvim
 ```
 
-The first launch downloads ~25 plugins. Wait for it to finish (you'll see a green checkmark on each), close the Lazy window with `q`, then quit with `:qa!` and reopen for a clean start.
+The first launch downloads ~30 plugins. Wait for it to finish (you'll see a green checkmark on each), close the Lazy window with `q`, then quit with `:qa!` and reopen for a clean start.
 
 ---
 
@@ -314,6 +346,19 @@ The **leader key** is `Space`. So `<leader>w` means "press Space then w."
 | `Space + c + v` | Show available versions |
 | `Space + c + f` | Show available features |
 
+### Visual / writing mode
+
+| Shortcut / command | Action |
+|---|---|
+| `Space + z` | Toggle Zen mode (centers buffer, hides UI) |
+| `:TodoTelescope` | Open a telescope picker of every TODO/FIXME/HACK in the project |
+| `:TodoQuickFix` | Send all TODOs to the quickfix list |
+| `:Noice` | Open the noice message history UI |
+| `:NoiceDismiss` | Dismiss any visible noice popups |
+| `:IBLToggle` | Toggle indent guide lines |
+| `:RainbowDelimitersToggle` | Toggle rainbow brackets |
+| `:SmearCursorToggle` | Toggle the cursor smear animation |
+
 ### Plugin manager
 
 | Command | Action |
@@ -342,7 +387,7 @@ Each plugin lives in its own file under `lua/plugins/`.
 
 | File | Plugin | What it does |
 |---|---|---|
-| `catppuccin.lua` | catppuccin/nvim | Color theme |
+| `catppuccin.lua` | catppuccin/nvim | Color theme (Mocha flavour) |
 | `telescope.lua` | nvim-telescope/telescope.nvim | Fuzzy finder |
 | `treesitter.lua` | nvim-treesitter/nvim-treesitter | Syntax highlighting |
 | `neo-tree.lua` | nvim-neo-tree/neo-tree.nvim | File tree sidebar |
@@ -360,6 +405,14 @@ Each plugin lives in its own file under `lua/plugins/`.
 | `crates.lua` | saecki/crates.nvim | Cargo.toml version annotations |
 | `bufferline.lua` | akinsho/bufferline.nvim | VS Code-style tabs |
 | `transparent.lua` | xiyaowong/transparent.nvim | Transparent background |
+| `smear-cursor.lua` | sphamba/smear-cursor.nvim | Animated cursor trail |
+| `noice.lua` | folke/noice.nvim | Floating cmdline + pretty notifications |
+| `mini-animate.lua` | echasnovski/mini.animate | Smooth scroll / window-resize animations |
+| `indent-blankline.lua` | lukas-reineke/indent-blankline.nvim | Indent guide lines |
+| `mini-indentscope.lua` | echasnovski/mini.indentscope | Animated current-scope highlight |
+| `rainbow-delimiters.lua` | HiPhish/rainbow-delimiters.nvim | Colored matching brackets |
+| `zen-mode.lua` | folke/zen-mode.nvim | Distraction-free buffer view |
+| `todo-comments.lua` | folke/todo-comments.nvim | Highlight `TODO` / `FIXME` / `HACK` comments |
 
 ---
 
@@ -440,7 +493,7 @@ Known issue with nvim 0.12 + nvim-treesitter master. Already worked around in `t
 
 ### Icons appear as `?` boxes
 
-You haven't installed (or your terminal isn't using) a Nerd Font. Install `font-jetbrains-mono-nerd-font` (or any other Nerd Font), then set your terminal profile to use it.
+Your terminal isn't using a Nerd Font. See the [Terminal + Nerd Font](#terminal--nerd-font) section in Install — common gotcha: the font is installed but you didn't fully quit your terminal before searching for it in the font picker (font lists are cached on launch).
 
 ### LSP shows "deprecated" warnings
 
