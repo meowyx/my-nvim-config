@@ -35,10 +35,15 @@ If you're brand new to Neovim, read this top-to-bottom. If you already know Vim,
 - VS Code-style buffer tabs at the top (`bufferline`)
 - Color highlighting for hex/rgb/Tailwind (`nvim-colorizer`)
 - Inline labels at the end of long blocks (`nvim-biscuits`)
-- Custom status bar (`lualine`, Catppuccin Mocha theme) — pink rounded mode pill, hexagon section icons, branch + git diff stats, LSP indicator, diagnostic dots
+- Custom status bar (`lualine`, Solarized Osaka theme): magenta rounded mode pill, hexagon section icons, branch + git diff stats, LSP indicator, diagnostic dots
 - Leader-key cheat popup (`which-key`)
 - Transparent background (`transparent.nvim`)
-- Catppuccin Mocha theme
+- Solarized Osaka color theme (`solarized-osaka.nvim`, by craftzdog; Catppuccin Mocha kept installed as a fallback)
+- Floating per-split filename label, color-matched to the theme (`incline.nvim`)
+- Live-preview LSP rename: every occurrence updates as you type the new name (`inc-rename.nvim`)
+- Smart increment/decrement of numbers, dates, booleans, semver, `let`/`const` with `Ctrl+a` and `Ctrl+x` (`dial.nvim`)
+- Bracket-motion jumps for buffers, indents, jumps, oldfiles, undo states, treesitter nodes (`mini.bracketed`)
+- Cowboy mode: a friendly nag after 10 rapid `hjkl` presses, to nudge you toward real motions (custom, see `lua/discipline.lua`)
 - Animated cursor trail (`smear-cursor.nvim`)
 - Floating command-line + pretty notifications (`noice.nvim`)
 - Smooth scroll and window-resize animations (`mini.animate`)
@@ -46,6 +51,7 @@ If you're brand new to Neovim, read this top-to-bottom. If you already know Vim,
 - Rainbow-colored matching brackets (`rainbow-delimiters`)
 - Color-coded `TODO` / `FIXME` / `HACK` badges (`todo-comments`)
 - Distraction-free writing mode (`zen-mode`)
+- In-buffer Markdown rendering — colored headers, code-fence borders, rendered checkboxes, list bullets (`render-markdown.nvim`)
 - Editor polish: relative line numbers, cursor-line highlight, hidden end-of-buffer tildes, brighter Catppuccin-tinted indent guides
 
 ---
@@ -161,7 +167,7 @@ Now you can type freely.
 
 ### Leave insert mode
 
-Press `Esc`. You're back in normal mode.
+Press `Esc`, or quickly type **`jj`** (this config maps `jj` → `Esc` in insert mode so your hands never leave the home row). You're back in normal mode.
 
 ### Save
 
@@ -217,12 +223,14 @@ The **leader key** is `Space`. So `<leader>w` means "press Space then w."
 | Shortcut | Action |
 |---|---|
 | `i` `a` `o` `O` | Enter insert mode (see [above](#enter-insert-mode-start-typing)) |
-| `x` | Delete the character under cursor |
+| `x` | Delete the character under cursor (goes to black hole, does not overwrite yank) |
 | `dd` | Delete the entire line |
 | `5dd` | Delete 5 lines |
 | `yy` | Yank (copy) the line |
-| `p` | Paste below cursor / after cursor |
+| `p` | Paste below cursor / after cursor (uses default register, can be overwritten by deletes) |
 | `P` | Paste above / before cursor |
+| `Space + d` / `Space + D` | Delete without yanking (works in normal + visual). Use when deleting something you do NOT want to overwrite your last copy. |
+| `Space + p` / `Space + P` | Paste from the yank register (`"0`). Always pastes the last *copy*, never a deleted thing. |
 | `u` | Undo |
 | `Ctrl+r` | Redo |
 | `dw` | Delete word |
@@ -246,11 +254,24 @@ The **leader key** is `Space`. So `<leader>w` means "press Space then w."
 
 | Shortcut | Action |
 |---|---|
-| `:vsplit` | Split vertically |
-| `:split` | Split horizontally |
+| `:vsplit` | Split vertically (new window opens to the **right** of current; the current file stays put) |
+| `:split` | Split horizontally (new window opens **below** current) |
 | `Ctrl+w` then `h` `j` `k` `l` | Move between splits |
 | `Ctrl+w` then `=` | Equalize split sizes |
 | `Ctrl+w` then `q` | Close current split |
+
+The right/below behavior comes from `splitright` and `splitbelow` set in `vim-options.lua`. Default Neovim opens new splits left/above which most people find disorienting.
+
+### Search
+
+| Shortcut / behavior | Action |
+|---|---|
+| `/foo` | Search forward for `foo` |
+| `?foo` | Search backward |
+| `n` / `N` | Next / previous match |
+| `*` | Search for word under cursor |
+| Case sensitivity | `ignorecase + smartcase`: `/foo` matches Foo/FOO/foo, but `/Foo` only matches `Foo` |
+| `:%s/old/new/g` | Replace all `old` with `new` in the file. A **live preview pane** opens showing every change as you type, thanks to `inccommand = "split"`. |
 
 ### Buffer tabs (bufferline)
 
@@ -279,10 +300,45 @@ The **leader key** is `Space`. So `<leader>w` means "press Space then w."
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl+p` | Fuzzy find files by name |
+| `Ctrl+p` | Fuzzy find files by name (respects `.gitignore`) |
 | `Ctrl+f` | Search file contents (live grep) |
+| `;f` | Find files including hidden / git-ignored |
+| `;r` | Live grep including hidden / git-ignored |
+| `;t` | Browse `:help` tags |
+| `;e` | List diagnostics across all open buffers |
+| `;s` | Browse functions/variables/symbols (treesitter) in current file |
+| `;;` | Resume the previous telescope picker (with your last query) |
+| `\\` | List open buffers |
+| `Space + f + b` | File browser scoped to the current buffer's directory |
 | (inside telescope) `Enter` | Open the highlighted result |
 | (inside telescope) `Esc` | Cancel |
+| (inside telescope) `Ctrl+u` / `Ctrl+d` | Scroll preview up/down |
+
+### Jump motions (mini.bracketed)
+
+`[` jumps backward, `]` jumps forward, then a letter for *what* to jump between.
+
+| Shortcut | Action |
+|---|---|
+| `[b` / `]b` | Previous / next buffer |
+| `[i` / `]i` | Previous / next indent change |
+| `[j` / `]j` | Previous / next jump in jumplist |
+| `[l` / `]l` | Previous / next item in location list |
+| `[n` / `]n` | Previous / next sibling treesitter node |
+| `[o` / `]o` | Previous / next file in `:oldfiles` (recently opened) |
+| `[u` / `]u` | Previous / next undo state |
+| `[x` / `]x` | Previous / next git conflict marker |
+| `[c` / `]c` | Previous / next git hunk (from gitsigns, not mini.bracketed) |
+| `[d` / `]d` | Previous / next diagnostic (from LSP, not mini.bracketed) |
+
+### Smart increment / decrement (dial.nvim)
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+a` | Increment number / date / boolean / semver / `let↔const` under cursor |
+| `Ctrl+x` | Decrement same |
+
+Examples: on `42` it goes to `43`. On `true` it flips to `false`. On `1.2.3` it bumps to `1.2.4`. On `let` it swaps to `const`. On `2025/05/11` it advances the date by a day.
 
 ### LSP (when in a code file)
 
@@ -291,8 +347,9 @@ The **leader key** is `Space`. So `<leader>w` means "press Space then w."
 | `K` | Show hover documentation |
 | `gd` | Go to definition |
 | `gr` | Show all references |
-| `Space + r + n` | Rename symbol everywhere |
+| `Space + r + n` | Rename symbol everywhere (uses `inc-rename`: every occurrence updates **live as you type** the new name; `Esc` to cancel, `Enter` to commit) |
 | `Space + c + a` | Code actions (quick fixes / refactors) |
+| `Space + t + h` | Toggle inlay hints on/off (the gray inferred-type / parameter-name annotations) |
 | `[d` | Jump to previous diagnostic |
 | `]d` | Jump to next diagnostic |
 | `Ctrl+o` | Jump back to previous location |
@@ -387,8 +444,13 @@ Each plugin lives in its own file under `lua/plugins/`.
 
 | File | Plugin | What it does |
 |---|---|---|
-| `catppuccin.lua` | catppuccin/nvim | Color theme (Mocha flavour) |
-| `telescope.lua` | nvim-telescope/telescope.nvim | Fuzzy finder |
+| `solarized-osaka.lua` | craftzdog/solarized-osaka.nvim | Active color theme |
+| `catppuccin.lua` | catppuccin/nvim | Color theme (Mocha flavour), installed but lazy / inactive |
+| `incline.lua` | b0o/incline.nvim | Floating filename label in the top-right of each split |
+| `mini-bracketed.lua` | echasnovski/mini.bracketed | `[`/`]` jump motions for buffers, indents, undo, treesitter nodes, etc. |
+| `inc-rename.lua` | smjonas/inc-rename.nvim | Live-preview LSP rename (replaces default `<leader>rn` behavior) |
+| `dial.lua` | monaqa/dial.nvim | Smart `Ctrl+a` / `Ctrl+x` (numbers, dates, booleans, semver, `let↔const`) |
+| `telescope.lua` | nvim-telescope/telescope.nvim | Fuzzy finder (with `fzf-native` + `file-browser` extensions) |
 | `treesitter.lua` | nvim-treesitter/nvim-treesitter | Syntax highlighting |
 | `neo-tree.lua` | nvim-neo-tree/neo-tree.nvim | File tree sidebar |
 | `lsp-config.lua` | mason + mason-lspconfig + nvim-lspconfig | Language server setup |
@@ -413,6 +475,7 @@ Each plugin lives in its own file under `lua/plugins/`.
 | `rainbow-delimiters.lua` | HiPhish/rainbow-delimiters.nvim | Colored matching brackets |
 | `zen-mode.lua` | folke/zen-mode.nvim | Distraction-free buffer view |
 | `todo-comments.lua` | folke/todo-comments.nvim | Highlight `TODO` / `FIXME` / `HACK` comments |
+| `render-markdown.lua` | MeanderingProgrammer/render-markdown.nvim | Pretty in-buffer rendering for Markdown files |
 
 ---
 
@@ -459,10 +522,8 @@ After saving a Rust file, clippy runs and you'll see error/warning markers:
 
 1. Move cursor onto the function name
 2. `Space + r + n`
-3. Type the new name
-4. `Enter`
-
-LSP renames every reference across all files in the project.
+3. The current name is pre-filled in the command line. Edit it; every occurrence in the buffer updates **live** with each character you type.
+4. `Enter` to commit (renames across all files via LSP), or `Esc` to cancel and revert.
 
 ### Comment out a block
 
@@ -489,7 +550,16 @@ You changed several things in a file but only want to commit one of them.
 
 ### Markdown files show treesitter errors
 
-Known issue with nvim 0.12 + nvim-treesitter master. Already worked around in `treesitter.lua` (autocmd stops treesitter for markdown buffers). Markdown files load with no syntax coloring but no errors. Remove the autocmd when upstream catches up.
+This used to be an open issue with nvim 0.12 + nvim-treesitter master, worked around by disabling treesitter on markdown buffers. The workaround was removed when `render-markdown.nvim` was added (it requires treesitter on markdown). If errors return, run `:TSUpdate` first; if they persist, re-add an autocmd in `treesitter.lua`:
+
+```lua
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function() pcall(vim.treesitter.stop) end,
+})
+```
+
+— but note that `render-markdown.nvim` will stop working if you do.
 
 ### Icons appear as `?` boxes
 

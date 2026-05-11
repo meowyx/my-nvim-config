@@ -2,14 +2,14 @@ return {
   "nvim-lualine/lualine.nvim",
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
-    local palette = require("catppuccin.palettes").get_palette("mocha")
-    local theme = require("lualine.themes.catppuccin-mocha")
-    theme.normal.a.bg = palette.pink
-    theme.normal.a.fg = palette.base
+    local palette = require("solarized-osaka.colors").setup()
+    local theme = require("lualine.themes.solarized-osaka")
+    theme.normal.a.bg = palette.magenta
+    theme.normal.a.fg = palette.bg
     theme.insert.a.bg = palette.green
-    theme.visual.a.bg = palette.mauve
+    theme.visual.a.bg = palette.violet
     theme.replace.a.bg = palette.red
-    theme.command.a.bg = palette.peach
+    theme.command.a.bg = palette.orange
 
     local hexagon = "\xe2\xac\xa2"
 
